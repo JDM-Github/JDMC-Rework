@@ -8,19 +8,23 @@ namespace JDMC
 	class LabelSprite : public EntitySprite
 	{
 	public:
-		LabelSprite(JDMC::Pos2F position, const std::string &text, short fontSize);
-		LabelSprite(JDMC::Pos2F position, const std::string &text);
-		LabelSprite(const std::string& text, short fontSize);
-		LabelSprite(const std::string &text);
-		LabelSprite(const char *text);
+		LabelSprite(JDMC::Pos2F position, const std::string &text, unsigned short fontSize = 1, unsigned short thick = 1);
+		LabelSprite(const std::string& text, unsigned short fontSize = 1, unsigned short thick = 1);
+		LabelSprite(const char *text, unsigned short fontSize = 1, unsigned short thick = 1);
+		inline void Update() { this->updateFont(); }
 
-		void Render(const JDMC::Color Color = Color::FG_WHITE, const bool Alpha = false, const bool Cycle = false);
+		void Render(
+			const JDMC::Color Color = Color::FG_WHITE,
+			const JDMC::Color OutColor = Color::DEFAULT,
+			const bool Cycle = false);
 
-		void SetText(const std::string &text);
-		void SetFontSize(short fontSize);
+		void SetText    (const std::string &text);
+		void SetThick   (unsigned short thick);
+		void SetFontSize(unsigned short fontSize);
 
-		std::string GetText() const { return this->text; }
-		short GetFontSize() const { return this->fontSize; }
+		std::string GetText    () const { return this->text; }
+		short       GetThick   () const { return this->thick; }
+		short       GetFontSize() const { return this->fontSize; }
 
 	private:
 		void updateFont();
@@ -33,7 +37,8 @@ namespace JDMC
 		void LoadSprite(const std::string  &file  ) override {}
 
 	private:
-		short fontSize;
+		bool updated;
+		unsigned short thick, fontSize;
 		std::string text;
 	};
 }

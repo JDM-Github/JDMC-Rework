@@ -41,6 +41,8 @@ JDMC::Window::Window(
 	SetConsoleWindowSize(this->hConsole, ScreenWidth, ScreenHeight, fontWidth, fontHeight);
 	this->Screen = new CHAR_INFO[ScreenWidth * ScreenHeight];
 
+	ShowCursor(FALSE);
+
 	JDMC::Drawer::mWindow = this;
 }
 
@@ -60,6 +62,20 @@ JDMC::Window::~Window()
 	SetConsoleTextAttribute(this->originalConsole, JDMC::FG_WHITE | JDMC::BG_BLACK);
 	delete [] this->Screen;
 }
+
+// void JDMC::Window::hideMouse()
+// {
+//    static bool bCursorVisible = TRUE;
+//             if( ((HWND)wParam)!=hwD3DArea && !bCursorVisible )
+//             {
+//                 ShowCursor((bCursorVisible=TRUE));
+//             }
+//             else if( ((HWND)wParam)==hwD3DArea && bCursorVisible )
+//             {
+//                 ShowCursor((bCursorVisible=FALSE));
+//                 return TRUE;
+//             }
+// }
 
 void JDMC::Window::SetConsoleWindowSize(
 	HANDLE console,

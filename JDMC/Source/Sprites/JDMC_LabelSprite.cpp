@@ -5,92 +5,88 @@
 #include <fstream>
 #include <iostream>
 
-JDMC::LabelSprite::LabelSprite(JDMC::Pos2F position, const std::string& text, short fontSize)
-	: JDMC::EntitySprite()
+
+JDMC::LabelSprite::LabelSprite(JDMC::Pos2F position, const std::string& text, unsigned short fontSize, unsigned short thick)
+	: updated(false), thick(thick), text(text), fontSize(fontSize)
 {
-	this->text = text;
 	this->SetPosition(position);
-	this->SetFontSize(fontSize);
+	this->Update();
 }
 
-JDMC::LabelSprite::LabelSprite(JDMC::Pos2F position, const std::string& text)
-	: JDMC::EntitySprite()
+JDMC::LabelSprite::LabelSprite(const std::string& text, unsigned short fontSize, unsigned short thick)
+	: updated(false), thick(thick), text(text), fontSize(fontSize)
 {
-	this->text = text;
-	this->SetPosition(position);
-	this->SetFontSize(1);
-}
-
-JDMC::LabelSprite::LabelSprite(const std::string& text, short fontSize)
-	: JDMC::EntitySprite()
-{
-	this->text = text;
 	this->SetPosition({0, 0});
-	this->SetFontSize(fontSize);
+	this->Update();
 }
 
-JDMC::LabelSprite::LabelSprite(const std::string& text)
-	: JDMC::EntitySprite()
+JDMC::LabelSprite::LabelSprite(const char *text, unsigned short fontSize, unsigned short thick)
+	: updated(false), thick(thick), text(std::string(text)), fontSize(fontSize)
 {
-	this->text = text;
 	this->SetPosition({0, 0});
-	this->SetFontSize(1);
-}
-
-JDMC::LabelSprite::LabelSprite(const char *text)
-	: JDMC::EntitySprite()
-{
-	this->text = std::string(text);
-	this->SetPosition({0, 0});
-	this->SetFontSize(1);
+	this->Update();
 }
 
 void JDMC::LabelSprite::Render(
 	const JDMC::Color Color,
-	const bool Alpha,
+	const JDMC::Color OutColor,
 	const bool Cycle)
 {
+	if (!updated) this->updateFont();
+
 	short x_adder = 0, y_adder = 0;
 	for (short i = 0; i < this->Sprite.SpriteBody.size() && y_adder < this->Sprite.Height; i++)
 	{
-		if (this->Sprite.SpriteBody[i] == JDMC::Pixel::NEWLINE)
+		auto str = this->Sprite.SpriteBody[i];
+		if (str == JDMC::Pixel::NEWLINE)
 		{
 			x_adder = 0;
 			y_adder++;
 			continue;
 		}
-		if (x_adder >= this->Sprite.Width
-		|| (Alpha && this->Sprite.SpriteBody[i] == JDMC::Pixel::BLANK))
+
+		if (x_adder >= this->Sprite.Width)
 			continue;
 
-		Drawer::DrawBaseOnCycle({this->Position.X + x_adder, this->Position.Y + y_adder},
-			this->Sprite.SpriteBody[i], Color, Alpha, Cycle);
+		if (str == JDMC::Pixel::BLANK)
+		{
+			if (OutColor != JDMC::Color::DEFAULT)
+				Drawer::DrawBaseOnCycle({this->Position.X + x_adder, this->Position.Y + y_adder},
+					Pixel::PIXEL_SOLID, OutColor, true, Cycle);
+		}
+		else
+			Drawer::DrawBaseOnCycle({this->Position.X + x_adder, this->Position.Y + y_adder}, Pixel::PIXEL_SOLID, Color, true, Cycle);
 
 		x_adder++;
 	}
 }
 
-
 void JDMC::LabelSprite::SetText(const std::string &text)
 {
 	this->text = text;
-	this->SetFontSize(this->fontSize);
+	this->updated = false;
 }
 
-void JDMC::LabelSprite::SetFontSize(short fontSize)
+void JDMC::LabelSprite::SetThick(const unsigned short thick)
+{
+	this->thick = thick;
+	this->updated = false;
+}
+
+void JDMC::LabelSprite::SetFontSize(unsigned short fontSize)
 {
 	this->fontSize = fontSize;
-	// this->Sprite.Width = this->text.length() * 4 * fontSize;
-	this->Sprite.Height = 5 * fontSize;
-	this->updateFont();
+	this->updated = false;
 }
 
 void JDMC::LabelSprite::updateFont()
 {
+	short width = -1;
 	std::wstring spriteBody;
+	// for 
 	for (int row = 0; row < 5; row++)
 	{
-		std::wstring line; // Prepare the line
+		std::wstring line(this->thick, L' '); // Prepare the line
 		for (char c : text) 
 		{
 			if (JDMC::CharBitmaps::charBitmaps.find(c) != JDMC::CharBitmaps::charBitmaps.end())
@@ -100,7 +96,6 @@ void JDMC::LabelSprite::updateFont()
 					JDMC::CharBitmaps::charBitmaps.at(c), this->fontSize, row);
 
 				// Add to line
-				this->Sprite.Width += scaledBitmap.length();
 				line += scaledBitmap;
 				continue;
 			}
@@ -110,6 +105,10 @@ void JDMC::LabelSprite::updateFont()
 
 			line += L' ';
 		}
+		line.pop_back();
+		line.append(this->thick, L' ');
+
+		if (width < 0) width = line.length();
 
 		// Scale to height, since we already get the line
 		for (int i = 0; i < this->fontSize; i++)
@@ -118,6 +117,18 @@ void JDMC::LabelSprite::updateFont()
 			spriteBody += L'\n';
 		}
 	}
-	this->Sprite.Width = spriteBody.length() - 1;
-	this->Sprite.SpriteBody = spriteBody;
+	this->Sprite.Height = (5 * this->fontSize) + (2 * this->thick);
+	this->Sprite.Width = width;
+
+	auto emptyLine = std::wstring(width, L' ');
+	std::wstring spaceTopBot;
+	for (int i = 0; i < this->thick; i++)
+	{
+		spaceTopBot += emptyLine;
+		spaceTopBot += L'\n';
+	}
+	this->Sprite.SpriteBody += spaceTopBot;
+	this->Sprite.SpriteBody += spriteBody;
+	this->Sprite.SpriteBody += spaceTopBot;
+	this->updated = true;
 }

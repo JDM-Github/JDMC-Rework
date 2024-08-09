@@ -16,6 +16,7 @@ namespace JDMC
 
 	enum Color
 	{
+		DEFAULT       = 0x0100,
 		FG_BLACK      = 0x0000, BG_BLACK      = 0x0000,
 		FG_BLUE       = 0x0001, BG_BLUE       = 0x0010,
 		FG_GREEN      = 0x0002, BG_GREEN      = 0x0020,

@@ -13,16 +13,19 @@ JDMC::EntitySprite::EntitySprite(JDMC::Pos2F position, const std::string &sprite
 	this->SetPosition(position);
 	this->LoadSprite(sprite);
 }
+
 JDMC::EntitySprite::EntitySprite(const JDMC::Sprite &sprite)
 {
 	this->SetPosition({0, 0});
 	this->LoadSprite(sprite);
 }
+
 JDMC::EntitySprite::EntitySprite(const std::string &file)
 {
 	this->SetPosition({0, 0});
 	this->LoadSprite(file);
 }
+
 JDMC::EntitySprite::EntitySprite(const char *file)
 {
 	this->SetPosition({0, 0});

@@ -63,12 +63,11 @@ void JDMC::Drawer::DrawString(
 			y_adder++;
 			continue;
 		}
-		if (Alpha && str[i] == JDMC::Pixel::BLANK) continue;
-		Drawer::DrawBaseOnCycle({Position.X + x_adder, Position.Y + y_adder}, str[i], Color, Alpha, Cycle);
 		x_adder++;
+		if (Alpha && str[i] == JDMC::Pixel::BLANK) continue;
+		Drawer::DrawBaseOnCycle({Position.X + x_adder - 1, Position.Y + y_adder}, str[i], Color, Alpha, Cycle);
 	}
 }
-
 
 void JDMC::Drawer::DrawStringChar(
 	const JDMC::Pos2F Position,
@@ -87,9 +86,9 @@ void JDMC::Drawer::DrawStringChar(
 			y_adder++;
 			continue;
 		}
-		if (Alpha && str[i] == JDMC::Pixel::BLANK) continue;
-		Drawer::DrawBaseOnCycle({Position.X + x_adder, Position.Y + y_adder}, Character, Color, Cycle);
 		x_adder++;
+		if (Alpha && str[i] == JDMC::Pixel::BLANK) continue;
+		Drawer::DrawBaseOnCycle({Position.X + x_adder-1, Position.Y + y_adder}, Character, Color, Alpha, Cycle);
 	}
 }
 
@@ -108,10 +107,10 @@ void JDMC::Drawer::DrawCString(
 			y_adder++;
 			continue;
 		}
-		if (Alpha && str[i] == JDMC::Pixel::BLANK) continue;
-		Drawer::DrawBaseOnCycle({Position.X + x_adder, Position.Y + y_adder},
-			JDMC::PIXEL_SOLID, (JDMC::Function::getColor(str[i]) | JDMC::BG_BLACK), Cycle);
 		x_adder++;
+		if (Alpha && str[i] == JDMC::Pixel::BLANK) continue;
+		Drawer::DrawBaseOnCycle({Position.X + x_adder-1, Position.Y + y_adder},
+			JDMC::PIXEL_SOLID, (JDMC::Function::getColor(str[i]) | JDMC::BG_BLACK), Alpha, Cycle);
 	}
 }
 
@@ -131,10 +130,10 @@ void JDMC::Drawer::DrawCStringChar(
 			y_adder++;
 			continue;
 		}
-		if (Alpha && str[i] == JDMC::Pixel::BLANK) continue;
-		Drawer::DrawBaseOnCycle({Position.X + x_adder, Position.Y + y_adder},
-			Character, (JDMC::Function::getColor(str[i]) | JDMC::BG_BLACK), Cycle);
 		x_adder++;
+		if (Alpha && str[i] == JDMC::Pixel::BLANK) continue;
+		Drawer::DrawBaseOnCycle({Position.X + x_adder-1, Position.Y + y_adder},
+			Character, (JDMC::Function::getColor(str[i]) | JDMC::BG_BLACK), Alpha, Cycle);
 	}
 }
 
@@ -206,45 +205,124 @@ void JDMC::Drawer::DrawTriangle(
 void JDMC::Drawer::DrawBox(
 	const JDMC::PosSizeF SizePosition,
 	const short Character,
-	const short color,
+	const short Color,
+	const short Radius,
 	const bool  Alpha,
 	const bool  Cycle)
 {
-	for (int i = 0; i < static_cast<short>(SizePosition.Height); i++)
+	short Width  = static_cast<short>(SizePosition.Width);
+	short Height = static_cast<short>(SizePosition.Height);
+
+	int arcRadius = Radius;
+	if (arcRadius+1 >= Width || arcRadius+1 >= Height)
 	{
-		for (int j = 0; j < static_cast<short>(SizePosition.Width); j++)
+		arcRadius = std::min(Width, Height) - 2;
+	}
+
+	for (int i = 0; i < Height; i++)
+	{
+		for (int j = 0; j < Width; j++)
 		{
-			Drawer::DrawBaseOnCycle({SizePosition.X + j, SizePosition.Y + i}, Character, color, Alpha, Cycle);
+			if ((i < arcRadius || i >= Height - arcRadius) && (j < arcRadius || j >= Width - arcRadius))
+				continue;
+
+			Drawer::DrawBaseOnCycle({SizePosition.X + j, SizePosition.Y + i}, Character, Color, Alpha, Cycle);
 		}
 	}
+
+	for (int y = 1; y <= arcRadius; ++y)
+	{
+		short xPos = SizePosition.X + (arcRadius - y);
+		for (int j = 0; j < y; j++)
+			Drawer::DrawBaseOnCycle({static_cast<float>(xPos+j),
+				static_cast<float>(SizePosition.Y + y)}, Character, Color, Alpha, Cycle);
+	}
+
+	for (int y = 1; y <= arcRadius; ++y)
+	{
+		for (int j = 0; j < y; j++)
+			Drawer::DrawBaseOnCycle({static_cast<float>(SizePosition.X + Width - arcRadius + j),
+				static_cast<float>(SizePosition.Y + y)}, Character, Color, Alpha, Cycle);
+	}
+
+	for (int y = 1; y < arcRadius; ++y)
+	{
+		for (int j = 0; j < arcRadius-y; j++)
+			Drawer::DrawBaseOnCycle({static_cast<float>(SizePosition.X + j + y),
+				static_cast<float>(SizePosition.Y + Height - arcRadius + y - 1)}, Character, Color, Alpha, Cycle);
+	}
+
+	for (int y = 1; y < arcRadius; ++y)
+	{
+		for (int j = 0; j < arcRadius-y; j++)
+			Drawer::DrawBaseOnCycle({static_cast<float>(SizePosition.X + Width - arcRadius + j),
+				static_cast<float>(SizePosition.Y + Height - arcRadius + y - 1)}, Character, Color, Alpha, Cycle);
+	}
 }
+
 
 void JDMC::Drawer::DrawBoxHollow(
 	const JDMC::PosSizeF PosSize,
 	const int   thickness,
 	const short Character,
 	const short Color,
+	const short Radius,
 	const bool  Alpha,
 	const bool  Cycle)
 {
 	short Width  = static_cast<short>(PosSize.Width);
 	short Height = static_cast<short>(PosSize.Height);
 
-	for (int px = PosSize.X; px < PosSize.X + Width; px++)
+	int arcRadius = Radius;
+	if (arcRadius+1 >= Width || arcRadius+1 >= Height)
+	{
+		arcRadius = std::min(Width, Height) - 2;
+	}
+
+	for (int px = PosSize.X + arcRadius; px < PosSize.X + Width - arcRadius; px++)
 		for (int py = PosSize.Y; py < PosSize.Y + thickness; py++)
 			Drawer::DrawBaseOnCycle({static_cast<float>(px), static_cast<float>(py)}, Character, Color, Alpha, Cycle);
 
-	for (int px = PosSize.X; px < PosSize.X + Width; px++)
-		for (int py = PosSize.Y + Height - 1; py > PosSize.Y + Height - 1 - thickness; py--)
+	for (int px = PosSize.X + arcRadius; px < PosSize.X + Width - arcRadius; px++)
+		for (int py = PosSize.Y + Height - thickness; py < PosSize.Y + Height; py++)
 			Drawer::DrawBaseOnCycle({static_cast<float>(px), static_cast<float>(py)}, Character, Color, Alpha, Cycle);
 
-	for (int py = PosSize.Y; py < PosSize.Y + Height; py++)
+	for (int py = PosSize.Y + arcRadius; py < PosSize.Y + Height - arcRadius; py++)
 		for (int px = PosSize.X; px < PosSize.X + thickness; px++)
 			Drawer::DrawBaseOnCycle({static_cast<float>(px), static_cast<float>(py)}, Character, Color, Alpha, Cycle);
 
-	for (int py = PosSize.Y; py < PosSize.Y + Height; py++)
-		for (int px = PosSize.X + Width - 1; px > PosSize.X + Width - 1 - thickness; px--)
+	for (int py = PosSize.Y + arcRadius; py < PosSize.Y + Height - arcRadius; py++)
+		for (int px = PosSize.X + Width - thickness; px < PosSize.X + Width; px++)
 			Drawer::DrawBaseOnCycle({static_cast<float>(px), static_cast<float>(py)}, Character, Color, Alpha, Cycle);
+
+	for (int y = 1; y <= arcRadius; ++y)
+	{
+		short xPos = PosSize.X + (arcRadius - y);
+		for (int j = 0; j < y; j++)
+			Drawer::DrawBaseOnCycle({static_cast<float>(xPos+j),
+				static_cast<float>(PosSize.Y + y)}, Character, Color, Alpha, Cycle);
+	}
+
+	for (int y = 1; y <= arcRadius; ++y)
+	{
+		for (int j = 0; j < y; j++)
+			Drawer::DrawBaseOnCycle({static_cast<float>(PosSize.X + Width - arcRadius + j),
+				static_cast<float>(PosSize.Y + y)}, Character, Color, Alpha, Cycle);
+	}
+
+	for (int y = 1; y < arcRadius; ++y)
+	{
+		for (int j = 0; j < arcRadius-y; j++)
+			Drawer::DrawBaseOnCycle({static_cast<float>(PosSize.X + j + y),
+				static_cast<float>(PosSize.Y + Height - arcRadius + y - 1)}, Character, Color, Alpha, Cycle);
+	}
+
+	for (int y = 1; y < arcRadius; ++y)
+	{
+		for (int j = 0; j < arcRadius-y; j++)
+			Drawer::DrawBaseOnCycle({static_cast<float>(PosSize.X + Width - arcRadius + j),
+				static_cast<float>(PosSize.Y + Height - arcRadius + y - 1)}, Character, Color, Alpha, Cycle);
+	}
 }
 
 void JDMC::Drawer::DrawBoxHollowWH(

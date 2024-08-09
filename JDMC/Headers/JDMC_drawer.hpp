@@ -94,6 +94,7 @@ namespace JDMC
 			const JDMC::PosSizeF SizePosition,
 			const short Character = JDMC::Pixel::PIXEL_SOLID,
 			const short Color     = (JDMC::Color::FG_WHITE | JDMC::Color::BG_BLACK),
+			const short Radius    = 0,
 			const bool  Alpha     = false,
 			const bool  Cycle     = false);
 
@@ -102,6 +103,7 @@ namespace JDMC
 			const int   thickness,
 			const short Character = JDMC::Pixel::PIXEL_SOLID,
 			const short Color     = (JDMC::FG_WHITE | JDMC::BG_BLACK),
+			const short Radius    = 0,
 			const bool  Alpha     = false,
 			const bool  Cycle     = false);
 

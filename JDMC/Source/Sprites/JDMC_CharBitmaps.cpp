@@ -2,6 +2,16 @@
 #include "JDMC_enum.hpp"
 
 const std::unordered_map<char, std::vector<std::vector<bool>>> JDMC::CharBitmaps::charBitmaps = {
+{'@', {{0, 1, 1, 1, 0},
+	   {1, 0, 0, 0, 1},
+	   {1, 0, 1, 1, 1},
+	   {1, 0, 1, 0, 0},
+	   {0, 1, 0, 1, 1}}},
+{'!', {{0, 1, 0},
+	   {0, 1, 0},
+	   {0, 1, 0},
+	   {0, 0, 0},
+	   {0, 1, 0}}},
 {'0', {{0, 1, 0},
 	   {1, 0, 1},
 	   {1, 0, 1},

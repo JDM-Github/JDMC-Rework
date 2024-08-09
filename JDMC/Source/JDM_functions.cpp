@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <ctime>
 
 using json = nlohmann::json;
 
@@ -10,6 +11,8 @@ namespace JDMC
 {
 	namespace Function
 	{
+		void SetRandomSeed() { srand(std::time(0)); }
+
 		const JDMC::Color getColor(short Index)
 		{
 			switch (Index)
@@ -56,6 +59,18 @@ namespace JDMC
 			sprite.SpriteBody = SpriteBody;
 		
 			return sprite;
+		}
+
+		const int Randint(int first, int second)
+		{
+			return first + (rand() % (second + (first * -1)));
+		}
+
+		const float Randfloat(int first, int second)
+		{
+			int FirstValue = (first + (rand() % (second + (first * -1)))) + 1;
+			float SecondValue = (9.0f / (9 + (rand() % 100)));
+			return FirstValue - SecondValue;
 		}
 	}
 
